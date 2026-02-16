@@ -50,4 +50,13 @@ def braking_zones(best_lap):
   return best_lap
 
 
+def corner_detector(best_lap):
+  # identify corners
+    acc_threshold = 0.8
+    best_lap['Turn'] = abs(best_lap['AccelerometerY']) > acc_threshold
+    best_lap['Turn_start'] = (best_lap['Turn'] & ~best_lap['Turn'].shift(1).fillna(0).astype(bool))
+    best_lap['Turn_id'] = (best_lap['Turn_start'])[best_lap['Turn'] == True].cumsum()
+    best_lap.loc[best_lap['Turn'] == False, 'Turn_id'] = 0
+    return best_lap
+
 

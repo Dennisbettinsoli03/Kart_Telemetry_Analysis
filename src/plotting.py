@@ -162,4 +162,32 @@ def braking_analysis(best_lap):
   plt.tight_layout()
   plt.show()
 
+def turning_plot(best_lap):
+  # Braking events plot
+  latitude = best_lap['GPS Latitude'].values
+  longitude = best_lap['GPS Longitude'].values
+  turning = best_lap['Turn'].values  # boolean True/False
+  plt.figure(figsize=(12, 6))
+  # base trajectory
+  plt.plot(longitude, latitude, color='gray', linewidth=1, label='Trajectory')
+  # marker in breaking points
+  plt.scatter(
+    longitude[turning],
+    latitude[turning],
+    color='red',
+    s=30,
+    marker='.',
+    label='Turn zone')
+  starting_lat = best_lap['GPS Latitude'].values[0]
+  starting_long = best_lap['GPS Longitude'].values[0]
+  plt.scatter(
+    starting_long, starting_lat, color='blue', marker='o', s=50, label='Start point'
+  )
+  plt.axis('equal')
+  plt.xlabel('Longitude')
+  plt.ylabel('Latitude')
+  plt.title('Corners – Best lap')
+  plt.legend()
+  plt.show()
+
 
