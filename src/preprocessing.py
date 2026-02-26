@@ -7,10 +7,8 @@ def import_data(path):
   return df
 
 def data_cleaning(df):
-  df = df[(df['GPS PosAccuracy'] < 100) & (df['GPS SpdAccuracy'] < 1)]            # data cleaning
-
-  for col in df.columns:
-    df[col] = pd.to_numeric(df[col], errors='coerce')     # convert object to float
+  df = df[(df['GPS PosAccuracy'] < 100) & (df['GPS SpdAccuracy'] < 1)].copy()        # data cleaning
+  df = df.apply( pd.to_numeric, errors='coerce')     # convert object to float, faster than for cycle
 
   print(df['Time'].diff().describe()    )                    # data validation sampling freq = 50 Hz
   df = df.dropna(subset=["Time", "GPS Speed"])        # drop NA values
