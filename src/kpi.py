@@ -3,15 +3,21 @@ from itertools import groupby
 import numpy as np
 import pandas as pd
 
-def lap_kpi(lap_times, best_lap):
-  lap_kpi = {
-      "Max speed [km/h]": best_lap['GPS Speed'].max(),
-      "Mean speed [km/h]": best_lap['GPS Speed'].mean(),
-      "Max RPM": best_lap['RPM'].max(),
-      "Mean RPM": best_lap['RPM'].mean()
-  }
 
-  return lap_kpi
+def lap_kpi(best_lap: pd.DataFrame) -> dict:
+    """
+    Compute summary KPIs for the best lap.
+
+    Returns
+    -------
+    dict with max/mean speed and RPM.
+    """
+    return {
+        "Max speed [km/h]": round(best_lap['GPS Speed'].max(), 1),
+        "Mean speed [km/h]": round(best_lap['GPS Speed'].mean(), 1),
+        "Max RPM": int(best_lap['RPM'].max()),
+        "Mean RPM": int(best_lap['RPM'].mean()),
+    }
 
 def braking_kpi(best_lap):
     braking_data = best_lap[best_lap['Braking_zone'] > 0]
@@ -26,17 +32,30 @@ def braking_kpi(best_lap):
     )
 
     return braking_kpi
-def acceleration_pickup_point(best_lap):
-    # 1. Apex detection: find the point of minimum speed for each turn
+def acceleration_pickup_point(best_lap,acc_min: float = 0.1):
+    """
+        Calculate the distance between apex and traction point for each corner.
+
+        Parameters
+        ----------
+        best_lap : pd.DataFrame
+        acc_threshold_g : float
+            Longitudinal acceleration threshold to detect traction point [g].
+
+        Returns
+        -------
+        best_lap : pd.DataFrame (with Acceleration and Acc_start columns added)
+        pickup_table : pd.DataFrame with columns [Turn_id, pickup_distance]
+        """
+    # Apex detection: find the point of minimum speed for each turn
     turns_only = best_lap[best_lap['Turn_id'] > 0]
     idx_apex = turns_only.groupby('Turn_id')['GPS Speed'].idxmin()
 
-    # 2. Traction point detection: identify when acceleration exceeds the threshold
-    acc_min = 0.1
+    # Traction point detection: identify when acceleration exceeds the threshold
     best_lap['Acceleration'] = (best_lap['AccelerometerX']) > acc_min
     best_lap['Acc_start'] = (best_lap['Acceleration'] & ~best_lap['Acceleration'].shift(1).fillna(0).astype(bool))
 
-    # 3. Distance calculation (Initialize empty list to store results)
+    # Distance calculation (Initialize empty list to store results)
     pickup_distances = []
 
     for turn_id in idx_apex.index:
@@ -60,7 +79,7 @@ def acceleration_pickup_point(best_lap):
             'pickup_distance': pickup_interval
         })
 
-    # 4. Final Table Creation
+    # Final Table Creation
     pickup_table = pd.DataFrame(pickup_distances)
 
     return best_lap, pickup_table

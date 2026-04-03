@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 # base analysis
 def base_analysis_plot (best_lap):
   plt.figure (figsize=(12,6))                                            # Plot speed of the best lap over distance
-  plt.plot(best_lap['s'], best_lap['GPS Speed'])
+  plt.plot(best_lap['Distance'], best_lap['GPS Speed'])
   plt.xlabel('Distance [m]')
   plt.ylabel('GPS Speed (km/h)')
   plt.title('GPS Speed over distance - best lap')
@@ -19,7 +19,7 @@ def base_analysis_plot (best_lap):
   plt.show()
 
   plt.figure (figsize=(12,6))                                            # Plot speed of the best lap
-  plt.plot(best_lap['s'], best_lap['RPM'])
+  plt.plot(best_lap['Distance'], best_lap['RPM'])
   plt.xlabel('Distance [m]')
   plt.ylabel('Engine speed (RPM)')
   plt.title('Engine speed over distance')
@@ -27,7 +27,7 @@ def base_analysis_plot (best_lap):
   plt.show()
 
   plt.figure(figsize=(12,5))                                             # Plot longitudinal acceleration
-  plt.plot(best_lap['s'], best_lap['AccelerometerX'])
+  plt.plot(best_lap['Distance'], best_lap['AccelerometerX'])
   plt.xlabel('Distance [m]')
   plt.ylabel('Longitudinal Acc [g]')
   plt.title('Best Lap – Longitudinal Acceleration')
@@ -35,7 +35,7 @@ def base_analysis_plot (best_lap):
   plt.show()
 
   plt.figure(figsize=(12,5))                                             # Plot lateral acceleration
-  plt.plot(best_lap['s'], best_lap['AccelerometerY'])
+  plt.plot(best_lap['Distance'], best_lap['AccelerometerY'])
   plt.xlabel('Distance [m]')
   plt.ylabel('Lateral Acceleration [g]')
   plt.title('Best Lap – Lateral Acceleration')

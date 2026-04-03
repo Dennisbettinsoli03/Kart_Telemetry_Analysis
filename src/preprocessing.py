@@ -34,11 +34,19 @@ def compute_laps(df):
   print ('The number of lap is', df['Lap_id'].iloc[-1])
   return df
 
-def braking_zones(best_lap):
+def braking_zones(best_lap,min_dec:float = -1):
   # identify breaking zones
-  min_dec = -1  # g
-  best_lap['Braking_zone'] = best_lap['AccelerometerX'] < min_dec
+  """
+      Detect braking zones based on longitudinal deceleration threshold.
 
+      Parameters
+      ----------
+      best_lap : pd.DataFrame
+      min_decel_g : float
+          Deceleration threshold [g]. Default -1.0 g.
+          Adjust for softer karts (e.g. -0.7) or high-grip conditions (e.g. -1.3).
+      """
+  best_lap['Braking_zone'] = best_lap['AccelerometerX'] < min_dec
   # starting point
   best_lap['Braking_event'] = (
             best_lap['Braking_zone'] & ~best_lap['Braking_zone'].shift(1).fillna(False).astype(bool))     # choose only the first instant in which deceleration overcome the threshold
@@ -48,13 +56,21 @@ def braking_zones(best_lap):
   return best_lap
 
 
-def corner_detector(best_lap):
-  # identify corners
-    acc_threshold = 0.8
-    best_lap['Turn'] = abs(best_lap['AccelerometerY']) > acc_threshold
-    best_lap['Turn_start'] = (best_lap['Turn'] & ~best_lap['Turn'].shift(1).fillna(0).astype(bool))
-    best_lap['Turn_id'] = (best_lap['Turn_start'])[best_lap['Turn'] == True].cumsum()
-    best_lap.loc[best_lap['Turn'] == False, 'Turn_id'] = 0
-    return best_lap
+def corner_detector(best_lap,acc_threshold: float = 0.8):
+  """
+      Detect cornering zones based on lateral acceleration threshold.
+
+      Parameters
+      ----------
+      best_lap : pd.DataFrame
+      lat_acc_threshold : float
+          Lateral acceleration threshold [g]. Default 0.8 g.
+      """
+
+  best_lap['Turn'] = abs(best_lap['AccelerometerY']) > acc_threshold
+  best_lap['Turn_start'] = (best_lap['Turn'] & ~best_lap['Turn'].shift(1).fillna(0).astype(bool))
+  best_lap['Turn_id'] = (best_lap['Turn_start'])[best_lap['Turn'] == True].cumsum()
+  best_lap.loc[best_lap['Turn'] == False, 'Turn_id'] = 0
+  return best_lap
 
 
