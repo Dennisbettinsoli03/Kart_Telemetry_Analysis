@@ -1,5 +1,6 @@
 import pandas as pd
 import numpy as np
+import matplotlib.pyplot as plt
 
 def import_data(path):
   df = pd.read_excel(path)
@@ -18,15 +19,53 @@ def data_cleaning(df):
   df['Distance'] = (speed_ms * dt).cumsum()           # define cumulative distance
   return df
 
-def compute_laps(df):
-  start_lat = df['GPS Latitude'].iloc[100]                    # define starting line
-  start_long = df['GPS Longitude'].iloc[100]
+def select_sf_line(df):
+  """
+  Plot the full GPS trajectory and ask the user to click
+  on the start/finish line. Returns (lat, lon).
+
+  Usage in notebook:
+      sf_lat, sf_lon = select_sf_line(df)
+      df = compute_laps(df, sf_lat, sf_lon)
+  """
+  fig = plt.figure(figsize=(12, 6))
+  plt.plot(df['GPS Longitude'], df['GPS Latitude'], color='steelblue', linewidth=0.8, alpha=0.7)
+  plt.ylabel('Latitude')
+  plt.xlabel('Longitude')
+  plt.title('Select the s/f line point on the map and then close the window')
+  plt.grid(True)
+  plt.show()
+
+  # define an empty variable
+  clicked = []
+
+  def onclick(event):
+    # if the click is inside the plot append the coordinates to clicked
+    if event.inaxes != None:
+      clicked.append((event.ydata, event.xdata))
+      # plot a marker to identify the coordinates
+      plt.plot(event.xdata, event.ydata, 'ro',markersize=10, zorder=5)
+      # draw the marker
+      fig.canvas.draw()
+
+  # when a click event occurs, the function onclick is called
+  fig.canvas.mpl_connect('button_press_event', onclick)
+  plt.show(block=True)
+
+  if not clicked:
+    raise error('Start/finish line not selected. Run select_sf_line again.')
+  start_lat, start_long = clicked[-1]
+  print(f"The start line is located at lat = {start_lat:.4f} and long = {start_long:.4f}")
+  return start_lat, start_long
+
+def compute_laps(df, start_lat, start_long):
   lat = np.radians(df['GPS Latitude'])                              # convert lat and long in radians
   lon = np.radians(df['GPS Longitude'])
   lat0 = np.radians(start_lat)
   lon0 = np.radians(start_long)
   R = 6371000                                                          # earth radius
-  df["Dist_sf"] = R * np.sqrt( (lat - lat0)**2 + (np.cos(lat0)*(lon - lon0))**2)          # distance approximation
+  df["Dist_sf"] = R * np.sqrt( (lat - lat0)**2 +
+                               (np.cos(lat0)*(lon - lon0))**2)          # distance approximation
   treshold = 10
   df['Cross_sf'] = df['Dist_sf']< treshold                                   # boolean to define sf line crossing (tolerance 5 m)
 
